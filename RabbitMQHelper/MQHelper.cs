@@ -117,7 +117,6 @@ namespace RabbitMQHelper {
             try {
                 using (var bus = BusBuilder.CreateMessageBus()) {
                     var adbus = bus.Advanced;
-                    //var queue = adbus.QueueDeclare("user.notice.zhangsan");
                     var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Direct);
                     adbus.Publish(exchange, routingKey, false, new Message<T>(t));
                     return true;

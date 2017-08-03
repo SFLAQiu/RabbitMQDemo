@@ -164,7 +164,7 @@ namespace Web.Controllers
             for (int i = 0; i < 10; i++) {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                var isSc = MQHelper.TopicSub<string>( $"我只是个Test_{time}_{i}", "U.666", out msg);
+                var isSc = MQHelper.TopicSub<string>( $"我只是个Test_{time}_{i}", "A.666", out msg);
                 if (!isSc) return Content($"报错了:{msg}");
             }
             return Content("Bingo!");
