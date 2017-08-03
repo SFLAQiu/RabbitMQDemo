@@ -112,12 +112,13 @@ rabbitmqctl.bat set_permissions -p / sa ".*" ".*" ".*"
 
 **Fanout Exchange**
 
-![image](http://images2015.cnblogs.com/blog/306976/201607/306976-20160728104237622-1486261669.png)
+![image](http://images2015.cnblogs.com/blog/306976/201607/306976-20160728104237622-1486261669.png)   
 
 
 所有发送到Fanout Exchange的消息都会被转发到与该Exchange 绑定(Binding)的所有Queue上。   
 Fanout Exchange  不需要处理RouteKey 。只需要简单的将队列绑定到exchange     上。这样发送到exchange的消息都会被转发到与该交换机绑定的所有队列上。类似子网广播，每台子网内的主机都获得了一份复制的消息。
-所以，Fanout Exchange 转发消息是最快的。
+所以，Fanout Exchange 转发消息是最快的。   
+
 ---   
 
 基于EasyNetQ封装   
@@ -439,7 +440,7 @@ public static void GetSub<T>(T topic, Action<T> callback) where T : class
 using的对象在执行完成后被回收了，导致刚连接上去就又断开了(刚开始写的时候，习惯性加using，排查了好久才发现，欲哭无泪)
 
 ---
-有兴趣的童鞋可以来一波关注！
+Demo源码GitHub地址，有兴趣的童鞋可以来一波关注！
 ---
 **参考资料(鸣谢)：**    
 * [EasyNetQ-基于Topic的路由](http://www.cnblogs.com/zd1994/p/7169123.html)   
