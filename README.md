@@ -1,3 +1,12 @@
+---
+layout: post
+title:  "RabbitMQ入门与使用篇"
+date:   2017-07-05 12:00:05 +0800
+categories: RabbitMQ
+tags: RabbitMQ
+author: YYQ
+
+---
 　　
 ### 介绍
 
@@ -6,7 +15,16 @@ RabbitMQ是一个由erlang开发的基于AMQP（Advanced Message Queue）协议�
 [RabbitMQ的官方](https://www.rabbitmq.com/)   
 
 ![image](http://images2015.cnblogs.com/blog/306976/201607/306976-20160720104037044-1071063805.png)
-
+* 概念：
+    * Brocker：消息队列服务器实体。
+    * Exchange：消息交换机，指定消息按什么规则，路由到哪个队列。
+    * Queue：消息队列，每个消息都会被投入到一个或者多个队列里。
+    * Binding：绑定，它的作用是把exchange和queue按照路由规则binding起来。
+    * Routing Key：路由关键字，exchange根据这个关键字进行消息投递。
+    * Vhost：虚拟主机，一个broker里可以开设多个vhost，用作不用用户的权限分离。
+    * Producer：消息生产者，就是投递消息的程序。
+    * Consumer：消息消费者，就是接受消息的程序。
+    * Channel：消息通道，在客户端的每个连接里，可建立多个channel，每个channel代表一个会话任务。
 * 消息队列的使用过程大概如下：
     * 消息接收
         * 客户端连接到消息队列服务器，打开一个channel。  
@@ -20,40 +38,49 @@ RabbitMQ是一个由erlang开发的基于AMQP（Advanced Message Queue）协议�
     * Exchange 和 Queue    
     * 绿色的 X 就是 Exchange ，红色的是 Queue ，这两者都在 Server 端，又称作 Broker   
     * 这部分是 RabbitMQ 实现的，而蓝色的则是客户端，通常有 Producer 和 Consumer 两种类型。     
-
+* Exchange通常分为四种：
+    * fanout：该类型路由规则非常简单，会把所有发送到该Exchange的消息路由到所有与它绑定的Queue中，相当于广播功能
+    * direct：该类型路由规则会将消息路由到binding key与routing key完全匹配的Queue中
+    * topic：与direct类型相似，只是规则没有那么严格，可以模糊匹配和多条件匹配
+    * headers：该类型不依赖于routing key与binding key的匹配规则来路由消息，而是根据发送的消息内容中的headers属性进行匹配
+* 使用场景
+    * [官方介绍](https://www.rabbitmq.com/getstarted.html)  
 
 ---
 
 
-### 环境安装
+
+
+### 下载与安装
 * 下载
     * [rabbitmq ](http://www.rabbitmq.com/download.html)
     * [erlang](http://www.erlang.org/download.html)
 * 安装
     * 先安装erlang
     * 然后再安装rabbitmq
+
 ---
 
 ### 管理工具
 * 参考[官方文档](http://www.rabbitmq.com/management.html)
 
 操作起来很简单，只需要在DOS下面，进入安装目录（`安装路径\RabbitMQ Server\rabbitmq_server-3.2.2\sbin`）执行如下命令就可以成功安装。   
-```
+```bash
 rabbitmq-plugins enable rabbitmq_management    
 ```
 可以通过访问：`http://localhost:15672`进行测试，默认的登陆账号为：guest，密码为：guest。
 
+![图片](https://blog.waterstrong.me/assets/rabbitmq-guide/overview_totals.png)
 ---
 
-### 配置
+### 其他配置
 
 **1. 安装完以后erlang需要手动设置ERLANG_HOME 的系统变量。**
 
-```
+```bash
 set ERLANG_HOME=F:\Program Files\erl9.0
-
-环境变量`path`里加入：%ERLANG_HOME%\bin
-环境变量`path`里加入: 安装路径\RabbitMQ Server\rabbitmq_server-3.6.10\sbin
+#环境变量`path`里加入：%ERLANG_HOME%\bin
+#环境变量`path`里加入: 安装路径\RabbitMQ Server\rabbitmq_server-3.6.10\sbin
 
 ```
 
@@ -62,41 +89,37 @@ set ERLANG_HOME=F:\Program Files\erl9.0
 
 使用Rabbit MQ 管理插件，可以更好的可视化方式查看Rabbit MQ 服务器实例的状态，你可以在命令行中使用下面的命令激活。
 
-```
+```bash
 rabbitmq-plugins.bat  enable  rabbitmq_management
 ```
 
-同时，我们也使用rabbitmqctl控制台命令（位于 rabbitmq_server-3.6.3\sbin>）来创建用户，密码，绑定权限等。    
-
 **3．创建管理用户**
 
-```
+```bash
 rabbitmqctl.bat add_user sa 123456
 ```
 
 **4. 设置管理员**
 
-```
+```bash
 rabbitmqctl.bat set_user_tags sa administrator
 ```
 
 **5．设置权限**
 
-```
+```bash
 rabbitmqctl.bat set_permissions -p / sa ".*" ".*" ".*"
 ```
 
 **6. 其他命令**
 
-```
-
-查询用户：
+```bash
+#查询用户：
     rabbitmqctl.bat list_users
-查询vhosts：
+#查询vhosts：
     rabbitmqctl.bat list_vhosts
-启动RabbitMQ服务:
-    net stop RabbitMQ && net start RabbitMQ
-        
+#启动RabbitMQ服务:
+    net stop RabbitMQ && net start RabbitMQ     
 ```
 
 以上这些，账号、vhost、权限、作用域等基本就设置完了。
@@ -106,9 +129,26 @@ rabbitmqctl.bat set_permissions -p / sa ".*" ".*" ".*"
 ### 基于.net使用
 [RabbitMQ.Client](http://www.rabbitmq.com/dotnet.html) 是RabbiMQ 官方提供的的客户端    
 [EasyNetQ](http://easynetq.com/) 是基于RabbitMQ.Client 基础上封装的开源客户端,使用非常方便   
-> 以下操作RabbitMQ的代码例子，都是基于EasyNetQ的使用和再封装  
+> 以下操作RabbitMQ的代码例子，都是基于EasyNetQ的使用和再封装，在文章底部有**demo例子的源码下载地址**
 
 ---
+**创建 IBus**
+```csharp
+/// <summary>
+/// 消息服务器连接器
+/// </summary>
+public class BusBuilder {
+    public static IBus CreateMessageBus() {
+        // 消息服务器连接字符串
+        // var connectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"];
+        string connString = "host=127.0.0.1:5672;virtualHost=TestQueue;username=sa;password=123456";
+        if (connString == null || connString == string.Empty) throw new Exception("messageserver connection string is missing or empty");
+        return RabbitHutch.CreateBus(connString);
+    }
+}
+```
+
+
 
 **Fanout Exchange**
 
@@ -119,14 +159,9 @@ rabbitmqctl.bat set_permissions -p / sa ".*" ".*" ".*"
 Fanout Exchange  不需要处理RouteKey 。只需要简单的将队列绑定到exchange     上。这样发送到exchange的消息都会被转发到与该交换机绑定的所有队列上。类似子网广播，每台子网内的主机都获得了一份复制的消息。
 所以，Fanout Exchange 转发消息是最快的。   
 
----   
+---    
 
-基于EasyNetQ封装   
-
-
-``` C#
-#region "fanout"
-
+```csharp 
 /// <summary>
 ///  消息消耗（fanout）
 /// </summary>
@@ -169,8 +204,6 @@ public static bool FanoutPush<T>(T t, out string msg, string exChangeName = "fan
         return false;
     }
 }
-#endregion
-
 ```
 
 ---
@@ -180,10 +213,7 @@ Direct模式，可以使用RabbitMQ自带的Exchange：default Exchange 。所�
 
 ---
 
-基于EasyNetQ封装   
-
-``` C#
-#region "direct"
+``` csharp
 /// <summary>
 /// 消息发送（direct）
 /// </summary>
@@ -230,7 +260,6 @@ public static bool DirectPush<T>(T t, out string msg, string exChangeName = "dir
     try {
         using (var bus = BusBuilder.CreateMessageBus()) {
             var adbus = bus.Advanced;
-            //var queue = adbus.QueueDeclare("user.notice.zhangsan");
             var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Direct);
             adbus.Publish(exchange, routingKey, false, new Message<T>(t));
             return true;
@@ -268,7 +297,6 @@ public static bool DirectConsume<T>(Action<T> handler, out string msg, string ex
     }
     return true;
 }
-#endregion
 ```
 
 
@@ -282,7 +310,7 @@ public static bool DirectConsume<T>(Action<T> handler, out string msg, string ex
 
 要使用主题发布，只需使用带有主题的重载的Publish方法：
 
-```
+```csharp
 var bus = RabbitHutch.CreateBus(...);
 bus.Publish(message, "X.A");
 
@@ -300,16 +328,14 @@ bus.Publish(message, "X.A");
 
 EasyNetQ提供了消息订阅，当调用Subscribe方法时候，EasyNetQ会创建一个用于接收消息的队列，不过与消息发布不同的是，消息订阅增加了一个参数，subscribe_id.代码如下：
 
-```
+```csharp
 bus.Subscribe("my_id", handler, x => x.WithTopic("X.*"));
-
 ```
 警告： 具有相同订阅者但不同主题字符串的两个单独订阅可能不会产生您期望的效果。 subscriberId有效地标识个体AMQP队列。 具有相同subscriptionId的两个订阅者将连接到相同的队列，并且两者都将添加自己的主题绑定。 所以，例如，如果你这样做：
 
-```
+```csharp
 bus.Subscribe("my_id", handlerOfXDotStar, x => x.WithTopic("X.*"));
 bus.Subscribe("my_id", handlerOfStarDotB, x => x.WithTopic("*.B"));
-
 ```
 
 匹配“x.*”或“* .B”的所有消息将被传递到“XXX_my_id”队列。 然后，RabbitMQ将向两个消费者传递消息，其中handlerOfXDotStar和handlerOfStarDotB轮流获取每条消息。
@@ -318,18 +344,13 @@ bus.Subscribe("my_id", handlerOfStarDotB, x => x.WithTopic("*.B"));
 
 
 
-```
+```csharp
 bus.Subscribe("my_id", handler, x => x.WithTopic("X.*").WithTopic("*.B"));
-
 ```
 
 ---
 
-基于EasyNetQ封装   
-
-``` C#
-#region "topic"
-
+```csharp
 /// <summary>
 /// 获取主题 
 /// </summary>
@@ -410,21 +431,20 @@ public static void TopicConsume<T>(Action<T> callback, string exChangeName = "to
             callback(message.Body);
         });
     });
-}
-
-        
+}    
 ```
 
 ---   
+具体发布/订阅消息的Demo和相关测试看源码Demo
 
+![image](https://blog.thankbabe.com/imgs/rabbit_demo.jpg)
+---
 
 ### 注意
 
-.Net使用EasyNetQ库操作RabbitMQ
-当在创建消费者去消费队列的时候
+**当在创建订阅者去消费队列的时候**
 
-问题法如:
-``` C#
+```csharp
 /// <summary>
 /// 获取主题 
 /// </summary>
@@ -437,11 +457,27 @@ public static void GetSub<T>(T topic, Action<T> callback) where T : class
 
 }
 ```
-using的对象在执行完成后被回收了，导致刚连接上去就又断开了(刚开始写的时候，习惯性加using，排查了好久才发现，欲哭无泪)
 
----
-Demo源码GitHub地址，有兴趣的童鞋可以来一波关注！
----
+using里的对象在执行完成后被回收了，导致刚连接上去就又断开了(刚开始写的时候，习惯性加using，排查了好久才发现，欲哭无泪)
+
+
+
+**源码项目运行前的准备与确认：** 
+
+到RabbitMQ管理后台添加`TestQueue`VHost，并且分配用户权限，然后到`RabbitMQHelper.BusBuilder`类里配置RabbitMQ连接服务的相关信息
+`host=127.0.0.1:5672;virtualHost=TestQueue;username=sa;password=123456`，（根据配置的内容和用户修改）
+
+![image](https://blog.thankbabe.com/imgs/rabbitmq-ht.png)
+
+---   
 **参考资料(鸣谢)：**    
 * [EasyNetQ-基于Topic的路由](http://www.cnblogs.com/zd1994/p/7169123.html)   
 * [.NET操作RabbitMQ组件EasyNetQ使用中文简版文档。](http://www.cnblogs.com/panzi/p/6337568.html)
+* [RabbitMQ入门指南](https://blog.waterstrong.me/rabbitmq-start-guide/)
+
+---
+
+**附：**[Demo源码](https://github.com/SFLAQiu/RabbitMQDemo)GitHub地址，有兴趣的童鞋可以来一波关注！   
+
+
+---
