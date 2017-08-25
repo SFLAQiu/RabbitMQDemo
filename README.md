@@ -426,9 +426,10 @@ public static void TopicConsume<T>(Action<T> callback, string exChangeName = "to
 ```
 
 ---   
-具体发布/订阅消息的Demo和相关测试看源码Demo
-
+具体发布/订阅消息的Demo和相关测试看源码Demo   
 ![image](https://blog.thankbabe.com/imgs/rabbit_demo.jpg)
+为了方便使用，demo改进版本：   
+![image](https://blog.thankbabe.com/imgs/rabbit_demo_2.jpg)
 ---
 
 ### 注意
