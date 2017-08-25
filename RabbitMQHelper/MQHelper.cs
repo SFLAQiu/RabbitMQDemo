@@ -8,7 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RabbitMQHelper {
-    public class MQHelper {
+    public class MQHelper: BusBuilder {
+        public MQHelper(string host) : base(host) {
+        }
 
         #region "通用"
         /// <summary>
@@ -17,7 +19,7 @@ namespace RabbitMQHelper {
         /// <param name="adbus"></param>
         /// <param name="queueName"></param>
         /// <returns></returns>
-        private static IQueue CreateQueue(IAdvancedBus adbus, string queueName = "") {
+        private  IQueue CreateQueue(IAdvancedBus adbus, string queueName = "") {
             if (adbus == null) return null;
             if (string.IsNullOrEmpty(queueName)) return adbus.QueueDeclare();
             return adbus.QueueDeclare(queueName);
@@ -28,14 +30,14 @@ namespace RabbitMQHelper {
 
         /// <summary>
         ///  消息消耗（fanout）
-        /// </summary>
+        /// </summary>`
         /// <typeparam name="T">消息类型</typeparam>
         /// <param name="handler">回调</param>
         /// <param name="exChangeName">交换器名</param>
         /// <param name="queueName">队列名</param>
         /// <param name="routingKey">路由名</param>
-        public static void FanoutConsume<T>(Action<T> handler, string exChangeName = "fanout_mq", string queueName = "fanout_queue_default", string routingKey = "") where T : class {
-            var bus = BusBuilder.CreateMessageBus();
+        public  void FanoutConsume<T>(Action<T> handler, string exChangeName = "fanout_mq", string queueName = "fanout_queue_default", string routingKey = "") where T : class {
+            var bus = CreateMessageBus();
             var adbus = bus.Advanced;
             var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Fanout);
             var queue = CreateQueue(adbus, queueName);
@@ -54,10 +56,10 @@ namespace RabbitMQHelper {
         /// <param name="t">消息命名</param>
         /// <param name="msg">错误信息</param>
         /// <returns></returns>
-        public static bool FanoutPush<T>(T t, out string msg, string exChangeName = "fanout_mq", string routingKey = "") where T : class {
+        public  bool FanoutPush<T>(T t, out string msg, string exChangeName = "fanout_mq", string routingKey = "") where T : class {
             msg = string.Empty;
             try {
-                using (var bus = BusBuilder.CreateMessageBus()) {
+                using (var bus = CreateMessageBus()) {
                     var adbus = bus.Advanced;
                     var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Fanout);
                     adbus.Publish(exchange, routingKey, false, new Message<T>(t));
@@ -77,8 +79,8 @@ namespace RabbitMQHelper {
         /// <typeparam name="T">消息类型</typeparam>
         /// <param name="queue">发送到的队列</param>
         /// <param name="message">发送内容</param>
-        public static void DirectSend<T>(string queue, T message) where T : class {
-            using (var bus = BusBuilder.CreateMessageBus()) {
+        public  void DirectSend<T>(string queue, T message) where T : class {
+            using (var bus = CreateMessageBus()) {
                 bus.Send(queue, message);
             }
         }
@@ -90,10 +92,10 @@ namespace RabbitMQHelper {
         /// <param name="callback">回调操作</param>
         /// <param name="msg">错误信息</param>
         /// <returns></returns>
-        public static bool DirectReceive<T>(string queue, Action<T> callback, out string msg) where T : class {
+        public  bool DirectReceive<T>(string queue, Action<T> callback, out string msg) where T : class {
             msg = string.Empty;
             try {
-                var bus = BusBuilder.CreateMessageBus();
+                var bus = CreateMessageBus();
                 bus.Receive<T>(queue, callback);
             } catch (Exception ex) {
                 msg = ex.ToString();
@@ -112,10 +114,10 @@ namespace RabbitMQHelper {
         /// <param name="exChangeName"></param>
         /// <param name="routingKey"></param>
         /// <returns></returns>
-        public static bool DirectPush<T>(T t, out string msg, string exChangeName = "direct_mq", string routingKey = "direct_rout_default") where T : class {
+        public  bool DirectPush<T>(T t, out string msg, string exChangeName = "direct_mq", string routingKey = "direct_rout_default") where T : class {
             msg = string.Empty;
             try {
-                using (var bus = BusBuilder.CreateMessageBus()) {
+                using (var bus = CreateMessageBus()) {
                     var adbus = bus.Advanced;
                     var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Direct);
                     adbus.Publish(exchange, routingKey, false, new Message<T>(t));
@@ -135,10 +137,10 @@ namespace RabbitMQHelper {
         /// <param name="exChangeName">交换器名</param>
         /// <param name="queueName">队列名</param>
         /// <param name="routingKey">路由名</param>
-        public static bool DirectConsume<T>(Action<T> handler, out string msg, string exChangeName = "direct_mq", string queueName = "direct_queue_default", string routingKey = "direct_rout_default") where T : class {
+        public  bool DirectConsume<T>(Action<T> handler, out string msg, string exChangeName = "direct_mq", string queueName = "direct_queue_default", string routingKey = "direct_rout_default") where T : class {
             msg = string.Empty;
             try {
-                var bus = BusBuilder.CreateMessageBus();
+                var bus = CreateMessageBus();
                 var adbus = bus.Advanced;
                 var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Direct);
                 var queue = CreateQueue(adbus, queueName);
@@ -165,8 +167,8 @@ namespace RabbitMQHelper {
         /// <param name="subscriptionId">订阅者ID</param>
         /// <param name="callback">消息接收响应回调</param>
         ///  <param name="topics">订阅主题集合</param>
-        public static void TopicSubscribe<T>(string subscriptionId, Action<T> callback, params string[] topics) where T : class {
-            var bus = BusBuilder.CreateMessageBus();
+        public  void TopicSubscribe<T>(string subscriptionId, Action<T> callback, params string[] topics) where T : class {
+            var bus = CreateMessageBus();
             bus.Subscribe(subscriptionId, callback, (config) => {
                 foreach (var item in topics) config.WithTopic(item);
             });
@@ -179,10 +181,10 @@ namespace RabbitMQHelper {
         /// <param name="message">主题内容</param>
         /// <param name="msg">错误信息</param>
         /// <returns></returns>
-        public static bool TopicPublish<T>(string topic, T message, out string msg) where T : class {
+        public  bool TopicPublish<T>(string topic, T message, out string msg) where T : class {
             msg = string.Empty;
             try {
-                using (var bus = BusBuilder.CreateMessageBus()) {
+                using (var bus = CreateMessageBus()) {
                     bus.Publish(message, topic);
                     return true;
                 }
@@ -201,11 +203,11 @@ namespace RabbitMQHelper {
         /// <param name="msg">错误信息</param>
         /// <param name="exChangeName">交换器名</param>
         /// <returns></returns>
-        public static bool TopicSub<T>(T t, string topic, out string msg, string exChangeName = "topic_mq") where T : class {
+        public  bool TopicSub<T>(T t, string topic, out string msg, string exChangeName = "topic_mq") where T : class {
             msg = string.Empty;
             try {
                 if (string.IsNullOrWhiteSpace(topic)) throw new Exception("推送主题不能为空");
-                using (var bus = BusBuilder.CreateMessageBus()) {
+                using (var bus = CreateMessageBus()) {
                     var adbus = bus.Advanced;
                     //var queue = adbus.QueueDeclare("user.notice.zhangsan");
                     var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Topic);
@@ -227,8 +229,8 @@ namespace RabbitMQHelper {
         /// <param name="callback">回调</param>
         /// <param name="exChangeName">交换器名</param>
         /// <param name="topics">主题名</param>
-        public static void TopicConsume<T>(Action<T> callback, string exChangeName = "topic_mq",string subscriptionId = "topic_subid", params string[] topics) where T : class {
-            var bus = BusBuilder.CreateMessageBus();
+        public  void TopicConsume<T>(Action<T> callback, string exChangeName = "topic_mq",string subscriptionId = "topic_subid", params string[] topics) where T : class {
+            var bus = CreateMessageBus();
             var adbus = bus.Advanced;
             var exchange = adbus.ExchangeDeclare(exChangeName, ExchangeType.Topic);
             var queue = adbus.QueueDeclare(subscriptionId);

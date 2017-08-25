@@ -2,6 +2,7 @@
 using RabbitMQ.Client;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,12 +12,16 @@ namespace RabbitMQHelper {
     /// 消息服务器连接器
     /// </summary>
     public class BusBuilder {
-        public static IBus CreateMessageBus() {
+        private string _connectionString { get; set; }
+        private string _connectionConfigName { get; set; }
+        public BusBuilder(string host) {
+            _connectionConfigName = $"rabbitmq-{host}";
+            _connectionString = ConfigurationManager.AppSettings[_connectionConfigName]??"";
+        }
+        public IBus CreateMessageBus() {
             // 消息服务器连接字符串
-            // var connectionString = ConfigurationManager.ConnectionStrings["RabbitMQ"];
-            string connString = "host=127.0.0.1:5672;virtualHost=TestQueue;username=sa;password=123456";
-            if (connString == null || connString == string.Empty) throw new Exception("messageserver connection string is missing or empty");
-            return RabbitHutch.CreateBus(connString);
+            if (_connectionString == null || _connectionString == string.Empty) throw new Exception($"config[{_connectionConfigName}] not exist,  messageserver connection string is missing or empty");
+            return RabbitHutch.CreateBus(_connectionString);
         }
     }
 }

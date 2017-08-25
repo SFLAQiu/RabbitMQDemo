@@ -8,31 +8,29 @@ using System.Web.Mvc;
 
 namespace Web.Controllers
 {
-    public class HomeController : Controller
-    {
+    public class HomeController : Controller {
 
         public ActionResult Index() {
             return Content("弄啥呢!");
         }
 
         #region "Fanout Exchange Test"
-
-        public ActionResult Fanout()
-        {
-            return Fanout_Test_String();
+        public ActionResult Fanout(string handle = "string") {
+            switch (handle) {
+                case "string": return Fanout_Test_String();
+                case "obj": return Fanout_Test_Obj();
+                default: return Content($"what?");
+            }
         }
         /// <summary>
         /// Fanout 消息上报=>对象
         /// </summary>
         /// <returns></returns>
-        private ActionResult Fanout_Test_Obj()
-        {
-            for (int i = 0; i < 10; i++)
-            {
+        private ActionResult Fanout_Test_Obj() {
+            for (int i = 0; i < 10; i++) {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                var isSc = MQHelper.FanoutPush(new MSObject
-                {
+                var isSc = MQHelperFactory.Default().FanoutPush(new MSObject {
                     Name = $"我只是个Test_{time}_{i}",
                     Age = i,
                 }, out msg);
@@ -51,7 +49,7 @@ namespace Web.Controllers
             {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                var isSc = MQHelper.FanoutPush<string>($"我只是个Test_{time}_{i}", out msg);
+                var isSc = MQHelperFactory.Default().FanoutPush<string>($"我只是个Test_{time}_{i}", out msg);
                 if (!isSc) return Content($"报错了:{msg}");
             }
             return Content("Bingo!");
@@ -60,9 +58,13 @@ namespace Web.Controllers
 
         #region "Direct Exchange Test"
 
-        public ActionResult Direct()
-        {
-            return Direct_Test_String();
+        public ActionResult Direct(string handle="string") {
+            switch (handle) {
+                case "string": return Direct_Test_String();
+                case "obj": return Direct_Test_Obj();
+                case "push-obj": return Direct_Push_Test_Obj();
+                default: return Content($"what?");
+            }
         }
 
         /// <summary>
@@ -75,7 +77,7 @@ namespace Web.Controllers
             {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                MQHelper.DirectSend("direct_mq", $"我只是个Test_{time}_{i}");
+                MQHelperFactory.Default().DirectSend("direct_mq", $"我只是个Test_{time}_{i}");
             }
             return Content("Bingo!");
         }
@@ -90,7 +92,7 @@ namespace Web.Controllers
             {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                MQHelper.DirectSend<MSObject>("direct_mq", new MSObject
+                MQHelperFactory.Default().DirectSend<MSObject>("direct_mq", new MSObject
                 {
                     Name = $"我只是个Test_{time}_{i}",
                     Age = i,
@@ -108,7 +110,7 @@ namespace Web.Controllers
             {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                MQHelper.DirectPush<MSObject>(new MSObject
+                MQHelperFactory.Default().DirectPush<MSObject>(new MSObject
                 {
                     Name = $"我只是个Test_{time}_{i}",
                     Age = i,
@@ -121,9 +123,13 @@ namespace Web.Controllers
 
         #region "Topic Exchange Test"
 
-        public ActionResult Topic() {
-
-            return Topic_Sub_Test_String();
+        public ActionResult Topic(string handle="string") {
+            switch (handle) {
+                case "string": return Topic_Test_String();
+                case "obj": return Topic_Test_Obj();
+                case "sub-string": return Topic_Sub_Test_String();
+                default: return Content($"what?");
+            }
         }
         /// <summary>
         ///  Topic 消息上报=>string
@@ -133,7 +139,7 @@ namespace Web.Controllers
             for (int i = 0; i < 10; i++) {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                var isSc = MQHelper.TopicPublish<string>("A.666", $"我只是个Test_{time}_{i}", out msg);
+                var isSc = MQHelperFactory.Default().TopicPublish<string>("A.666", $"我只是个Test_{time}_{i}", out msg);
                 if (!isSc) return Content($"报错了:{msg}");
             }
             return Content("Bingo!");
@@ -146,7 +152,7 @@ namespace Web.Controllers
             for (int i = 0; i < 10; i++) {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                var isSc = MQHelper.TopicPublish<MSObject>("A.666", new MSObject {
+                var isSc = MQHelperFactory.Default().TopicPublish<MSObject>("A.666", new MSObject {
                     Name = $"我只是个Test_{time}_{i}",
                     Age = i,
                 }, out msg);
@@ -164,15 +170,12 @@ namespace Web.Controllers
             for (int i = 0; i < 10; i++) {
                 var time = DateTime.Now.ToString("HHmmss");
                 var msg = string.Empty;
-                var isSc = MQHelper.TopicSub<string>( $"我只是个Test_{time}_{i}", "A.666", out msg);
+                var isSc = MQHelperFactory.Default().TopicSub<string>( $"我只是个Test_{time}_{i}", "A.666", out msg);
                 if (!isSc) return Content($"报错了:{msg}");
             }
             return Content("Bingo!");
         }
         #endregion
-
-
-
 
     }
 }
