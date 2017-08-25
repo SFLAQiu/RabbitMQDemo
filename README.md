@@ -1,13 +1,4 @@
----
-layout: post
-title:  "RabbitMQ入门与使用篇"
-date:   2017-07-05 12:00:05 +0800
-categories: RabbitMQ
-tags: RabbitMQ
-author: YYQ
 
----
-　　
 ### 介绍
 
 RabbitMQ是一个由erlang开发的基于AMQP（Advanced Message Queue）协议的开源实现。用于在分布式系统中存储转发消息，在易用性、扩展性、高可用性等方面都非常的优秀。是当前最主流的消息中间件之一。
