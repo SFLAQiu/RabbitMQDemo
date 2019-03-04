@@ -429,11 +429,11 @@ public static void TopicConsume<T>(Action<T> callback, string exChangeName = "to
 
 具体发布/订阅消息的Demo和相关测试看源码Demo   
 
-![image](https://blog.thankbabe.com/imgs/rabbit_demo.jpg)
+![image](http://blog.thankbabe.com/imgs/rabbit_demo.jpg)
 
 为了方便使用，demo改进版本：   
 
-![image](https://blog.thankbabe.com/imgs/rabbit_demo_2.jpg)
+![image](http://blog.thankbabe.com/imgs/rabbit_demo_2.jpg)
 
 ---
 
@@ -464,7 +464,7 @@ using里的对象在执行完成后被回收了，导致刚连接上去就又断
 到RabbitMQ管理后台添加`TestQueue`VHost，并且分配用户权限，然后到`RabbitMQHelper.BusBuilder`类里配置RabbitMQ连接服务的相关信息
 `host=127.0.0.1:5672;virtualHost=TestQueue;username=sa;password=123456`，（根据配置的内容和用户修改）
 
-![image](https://blog.thankbabe.com/imgs/rabbitmq-ht.png)
+![image](http://blog.thankbabe.com/imgs/rabbitmq-ht.png)
 
 ---   
 **参考资料(鸣谢)：**    
